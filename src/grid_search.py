@@ -1,13 +1,14 @@
+import math
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Load data
@@ -59,26 +60,38 @@ print(f'Mean CV RMSE: {cv_rmse_scores.mean()}')
 y_pred = best_model.predict(X_test)
 mse = mean_squared_error(y_test, y_pred)
 mae = mean_absolute_error(y_test, y_pred)
+rmse = math.sqrt(mse)
 r2 = r2_score(y_test, y_pred)
 
 print(f'Mean Squared Error: {mse}')
 print(f'Mean Absolute Error: {mae}')
+print(f'RMSE: {rmse}')
 print(f'R-squared: {r2}')
 
 # Residual Analysis
-residuals = y_test - best_model.predict(X_test)
+residuals = y_test - y_pred
 plt.figure(figsize=(10, 6))
 sns.scatterplot(x=y_test, y=residuals)
 plt.title('Residual Analysis')
 plt.xlabel('Actual Salary')
 plt.ylabel('Residuals')
+coefficients = np.polyfit(y_test, residuals, 1)
+trendline = np.polyval(coefficients, y_test)
+plt.plot(y_test, trendline, color='red', linestyle='dashed', linewidth=2)
+plt.show()
+
+plt.scatter(y_test, y_pred)
+plt.xlabel('Actual values (y_test)')
+plt.ylabel('Predicted values (y_pred)')
+plt.title('Actual vs Predicted values')
+coefficients = np.polyfit(y_test, y_pred, 1)
+trendline = np.polyval(coefficients, y_test)
+plt.plot(y_test, trendline, color='red', linestyle='dashed', linewidth=2)
 plt.show()
 
 # Additional Metrics
-explained_variance = r2_score(y_test, y_pred)
 mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100
 
-print(f'Explained Variance: {explained_variance}')
 print(f'Mean Absolute Percentage Error (MAPE): {mape:.2f}%')
 
 # Visualization: Distribution of Average Salaries
